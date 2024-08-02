@@ -23,6 +23,13 @@ public class GitHubService {
     @Value("${github.api}")
     String githubApiUrl;
 
+    /**
+     * Retrieves a list of repositories for the given GitHub username.
+     *
+     * @param username The GitHub username for which to fetch repositories
+     * @return  A list of non-forked repositories of the specified user
+     * @throws UserNotFoundException If the GitHub user with the specified username is not found
+     */
     @NonNull
     public List<Repository> getRepositories(String username) throws UserNotFoundException {
         String url = githubApiUrl + "/users/" + username + "/repos";
@@ -55,6 +62,13 @@ public class GitHubService {
         return new ArrayList<>();
     }
 
+    /**
+     * Retrieves a list of branches for a given GitHub repository and user.
+     *
+     * @param repositoryName The name of the GitHub repository.
+     * @param repositoryOwner The name of the GitHub user.
+     * @return A list of objects representing the branches of the specified repository.
+     */
     @NonNull
     private List<Branch> getBranches(String repositoryName, String repositoryOwner) {
         String url = githubApiUrl + "/repos/" + repositoryOwner + "/" + repositoryName + "/branches";

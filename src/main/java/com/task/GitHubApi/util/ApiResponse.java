@@ -12,6 +12,12 @@ import java.util.Map;
 public class ApiResponse {
     final static RestTemplate restTemplate = new RestTemplate();
 
+    /**
+     * Sends an HTTP GET request to the specified URL and retrieves the response body as a list of maps.
+     *
+     * @param url The URL to send the GET request to.
+     * @return A list of maps representing the JSON response body.
+     */
     public static List<Map<String, Object>> getBody(String url) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json");

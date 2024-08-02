@@ -21,7 +21,7 @@ public class GitHubController {
         try {
             return ResponseEntity.ok(service.getRepositories(username));
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(404).body(new ErrorResponse(404, "User not found"));
+            return ResponseEntity.status(404).body(new ErrorResponse(404, e.getMessage()));
         }
     }
 }
