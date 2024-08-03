@@ -1,91 +1,28 @@
 package com.task.GitHubApi.service;
 
-import com.task.GitHubApi.data.Branch;
 import com.task.GitHubApi.data.Repository;
-import com.task.GitHubApi.data.exception.UserNotFoundException;
-import com.task.GitHubApi.util.ApiResponse;
+import com.task.GitHubApi.data.response.ApiResponse;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Service
 @RequiredArgsConstructor
 public class GitHubService {
-    @Value("${github.api}")
-    String githubApiUrl;
 
-    /**
-     * Retrieves a list of repositories for the given GitHub username.
-     *
-     * @param username The GitHub username for which to fetch repositories
-     * @return  A list of non-forked repositories of the specified user
-     * @throws UserNotFoundException If the GitHub user with the specified username is not found
-     */
+    final ApiService apiService;
+
     @NonNull
-    public List<Repository> getRepositories(String username) throws UserNotFoundException {
-        String url = githubApiUrl + "/users/" + username + "/repos";
-
+    public ApiResponse<List<Repository>> getRepositories(String username) {
         try {
-            List<Map<String, Object>> repositoryList = ApiResponse.getBody(url);
-            if (repositoryList == null) {
-                return new ArrayList<>();
-            }
-
-            List<Repository> repositories = new ArrayList<>();
-            for (Map<String, Object> repository : repositoryList) {
-                if (!((boolean) repository.get("fork"))) {
-                    String repositoryName = (String) repository.get("name");
-
-                    @SuppressWarnings("unchecked")
-                    String repositoryOwner = (String) ((Map<String, Object>) repository.get("owner")).get("login");
-
-                    repositories.add(new Repository(repositoryName, repositoryOwner, getBranches(repositoryName, repositoryOwner)));
-                }
-            }
-
-            return repositories;
-        } catch (HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new UserNotFoundException();
-            }
+            return apiService.fetchRepositories(username);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
-
-        return new ArrayList<>();
-    }
-
-    /**
-     * Retrieves a list of branches for a given GitHub repository and user.
-     *
-     * @param repositoryName The name of the GitHub repository.
-     * @param repositoryOwner The name of the GitHub user.
-     * @return A list of objects representing the branches of the specified repository.
-     */
-    @NonNull
-    private List<Branch> getBranches(String repositoryName, String repositoryOwner) {
-        String url = githubApiUrl + "/repos/" + repositoryOwner + "/" + repositoryName + "/branches";
-
-        List<Map<String, Object>> branchList = ApiResponse.getBody(url);
-
-        List<Branch> branches = new ArrayList<>();
-        if (branchList != null) {
-            for (Map<String, Object> branch : branchList) {
-                String branchName = (String) branch.get("name");
-
-                @SuppressWarnings("unchecked")
-                String lastCommitSha = (String) ((Map<String, Object>) branch.get("commit")).get("sha");
-
-                branches.add(new Branch(branchName, lastCommitSha));
-            }
-        }
-        return branches;
     }
 }
